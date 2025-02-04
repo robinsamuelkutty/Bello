@@ -1,97 +1,142 @@
-import { useState } from 'react';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Eye icons
-import axios from 'axios'; // For API requests
-import { useNavigate } from 'react-router-dom'; // For navigation
+import { useState } from "react";
+import { useAuthStore } from "../store/useAuthStore";
+import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const SignUp = () => {
-    const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false); // Toggle state for password visibility
+import toast from "react-hot-toast";
 
-    const togglePasswordVisibility = () => {
-        setShowPassword((prev) => !prev);
-    };
+const SignUpPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
 
-    return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: '#FFC0CB' }} // Light pink background
-      >
-        <div className="bg-[#3E3232] text-white p-8 rounded-2xl shadow-lg w-96">
-          <h2 className="text-3xl font-bold text-center mb-2" style={{ fontFamily: 'Product Sans, sans-serif' }}>
-            Create Account
-          </h2>
-          <p className="text-[#BFA181] text-center mb-6" style={{ fontFamily: 'Product Sans, sans-serif' }}>
-            Sign up to get started
-          </p>
+  const { signup, isSigningUp } = useAuthStore();
 
-          <form>
-            {/* Full Name Input */}
-            <div className="mb-4">
-              <label className="block text-[#D7BFA6] font-semibold">Full Name</label>
-              <input 
-                type="text" 
+  const validateForm = () => {
+    if (!formData.fullName.trim()) return toast.error("Full name is required");
+    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
+    if (!formData.password) return toast.error("Password is required");
+    if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
+
+    return true;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const success = validateForm();
+
+    if (success === true) signup(formData);
+  };
+
+  return (
+    <div className="min-h-screen flex justify-center items-center ">
+      <div className="w-full max-w-md space-y-8 rounded-2xl shadow-lg ">
+        <div className="text-center mb-8">
+          <div className="flex flex-col items-center gap-2 group">
+            <div
+              className="size-12 rounded-xl bg-primary/10 flex items-center justify-center 
+            group-hover:bg-primary/20 transition-colors"
+            >
+              <MessageSquare className="size-6 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold mt-2">Create Account</h1>
+            <p className="text-base-content/60">Sign up to get started</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Full Name</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="size-5 text-base-content/40" />
+              </div>
+              <input
+                type="text"
+                className={`input input-bordered w-full pl-10`}
                 placeholder="John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full p-3 rounded-lg border border-[#BFA181] bg-[#2D2424] text-white focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-                style={{ fontFamily: 'Product Sans, sans-serif' }}
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               />
             </div>
+          </div>
 
-            {/* Email Input */}
-            <div className="mb-4">
-              <label className="block text-[#D7BFA6] font-semibold">Email</label>
-              <input 
-                type="email" 
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Email</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="size-5 text-base-content/40" />
+              </div>
+              <input
+                type="email"
+                className={`input input-bordered w-full pl-10`}
                 placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 rounded-lg border border-[#BFA181] bg-[#2D2424] text-white focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-                style={{ fontFamily: 'Product Sans, sans-serif' }}
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
+          </div>
 
-            {/* Password Input */}
-            <div className="mb-4 relative">
-              <label className="block text-[#D7BFA6] font-semibold">Password</label>
-              <input 
-                type={showPassword ? "text" : "password"} // Toggle input type
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text font-medium">Password</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="size-5 text-base-content/40" />
+              </div>
+              <input
+                type={showPassword ? "text" : "password"}
+                className={`input input-bordered w-full pl-10`}
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 rounded-lg border border-[#BFA181] bg-[#2D2424] text-white focus:outline-none focus:ring-2 focus:ring-[#BFA181] pr-10"
-                style={{ fontFamily: 'Product Sans, sans-serif' }}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
-              {/* Eye Icon for Toggle */}
-              <button 
+              <button
                 type="button"
-                onClick={togglePasswordVisibility}
-                className="absolute top-10 right-3 text-[#BFA181] hover:text-[#D7BFA6] transition"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+                {showPassword ? (
+                  <EyeOff className="size-5 text-base-content/40" />
+                ) : (
+                  <Eye className="size-5 text-base-content/40" />
+                )}
               </button>
             </div>
+          </div>
 
-            {/* Submit Button */}
-            <button 
-              type="submit"
-              className="w-full bg-[#BFA181] text-[#2D2424] py-3 rounded-lg font-semibold hover:bg-[#A38C6B] transition"
-              style={{ fontFamily: 'Product Sans, sans-serif' }}
-            >
-              Sign Up
-            </button>
-          </form>
+          <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
+            {isSigningUp ? (
+              <>
+                <Loader2 className="size-5 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              "Sign Up"
+            )}
+          </button>
+        </form>
 
-          {/* Login Link */}
-          <p className="text-sm text-[#BFA181] text-center mt-4" style={{ fontFamily: 'Product Sans, sans-serif' }}>
-            Already have an account? <a href="#" className="text-white font-semibold hover:underline">Login</a>
+        <div className="text-center">
+          <p className="text-base-content/60">
+            Already have an account?{" "}
+            <Link to="/login" className="link link-primary">
+            Login
+            </Link>
           </p>
         </div>
       </div>
-    );
+    </div>
+  );
 };
-
-export default SignUp;
-
+export default SignUpPage;
