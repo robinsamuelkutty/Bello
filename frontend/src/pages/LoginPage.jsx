@@ -1,6 +1,6 @@
 const LoginPage = () => {
   return (
-      <div className="min-h-screen flex items-center justify-center bg-[#2D2424]">
+      <div className="min-h-screen flex items-center justify-center ">
       <div className="flex bg-[#3E3232] text-white rounded-2xl shadow-lg w-[850px] h-[450px] overflow-hidden">
 
         <div className="w-1/2 px-10 py-8 flex flex-col justify-center">
@@ -42,7 +42,7 @@ const LoginPage = () => {
           </form>
 
           <p className="text-sm text-[#BFA181] text-center mt-5" style={{ fontFamily: 'Product Sans, sans-serif' }}>
-            New here? <a href="#" className="text-white font-semibold hover:underline">Create an account</a>
+            New here? <a href="/signup" className="text-white font-semibold hover:underline">Create an account</a>
           </p>
         </div>
 
