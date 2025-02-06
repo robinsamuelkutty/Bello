@@ -29,6 +29,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   signup: async (data) => {
+    console.log("data",data)
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
@@ -76,7 +77,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Profile updated successfully");
     } catch (error) {
       console.log("error in update profile:", error);
-      toast.error(error.response.data.message);
+      toast.error("Profile update failed");
     } finally {
       set({ isUpdatingProfile: false });
     }
