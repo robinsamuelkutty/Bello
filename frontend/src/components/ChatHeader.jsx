@@ -6,7 +6,6 @@ const ChatHeader = () => {
 
   return (
     <div className="flex items-center justify-between p-4 bg-base-200 text-base-content border-b border-base-300" data-theme={theme}>
-      {/* Left: Profile, Username, Status */}
       <div className="flex items-center gap-3">
         <img
           src="https://publish-p47754-e237306.adobeaemcloud.com/adobe/dynamicmedia/deliver/dm-aid--46f84f92-3cda-444b-bb0e-605d50aa156f/_390575742906.app.webp?preferwebp=true"
