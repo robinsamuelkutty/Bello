@@ -10,7 +10,7 @@ const ChatHeader = () => {
         <img
           src="https://publish-p47754-e237306.adobeaemcloud.com/adobe/dynamicmedia/deliver/dm-aid--46f84f92-3cda-444b-bb0e-605d50aa156f/_390575742906.app.webp?preferwebp=true"
           alt="Profile"
-          className="w-14 h-14 rounded-full"
+          className="w-14 h-14 rounded-full" 
         />
         <div>
           <p className="font-semibold">Cristiano Ronaldo</p>
