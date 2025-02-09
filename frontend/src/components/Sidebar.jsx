@@ -84,8 +84,4 @@ const Sidebar = () => {
     </aside>
   );
 };
-<<<<<<< HEAD
 export default Sidebar;
-=======
-export default Sidebar;
->>>>>>> 10d5087b24128d66b286a4ae74e7141afdc999ca
