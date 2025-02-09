@@ -1,9 +1,9 @@
 import React from 'react'
 
-const MessageSkelton = () => {
+const MessageSkeleton = () => {
   return (
     <div>MessageSkelton</div>
   )
 }
 
-export default MessageSkelton
+export default MessageSkeleton
