@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import Sidebar from "../components/Sidebar";
-=======
-//import React from 'react'
 
->>>>>>> 10d5087b24128d66b286a4ae74e7141afdc999ca
+import Sidebar from "../components/Sidebar";
 const HomePage = () => {
 
 
