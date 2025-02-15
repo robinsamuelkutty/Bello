@@ -1,27 +1,37 @@
-//import React from 'react'
-import { useThemeStore } from "../store/useThemeStore";
+import { X } from "lucide-react";
+import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 
 const ChatHeader = () => {
-  const { theme } = useThemeStore();
+  const { selectedUser, setSelectedUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
 
   return (
-    <div className="flex items-center justify-between p-4 bg-base-200 text-base-content border-b border-base-300" data-theme={theme}>
-      <div className="flex items-center gap-3">
-        <img
-          src="https://publish-p47754-e237306.adobeaemcloud.com/adobe/dynamicmedia/deliver/dm-aid--46f84f92-3cda-444b-bb0e-605d50aa156f/_390575742906.app.webp?preferwebp=true"
-          alt="Profile"
-          className="w-14 h-14 rounded-full" 
-        />
-        <div>
-          <p className="font-semibold">Cristiano Ronaldo</p>
-          <p className="text-sm text-success">Online</p> 
-        </div>
-      </div>
+    <div className="p-2.5 border-b border-base-300">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Avatar */}
+          <div className="avatar">
+            <div className="size-10 rounded-full relative">
+              <img src={selectedUser.profilePic || "/avatar.png"} alt={selectedUser.fullName} />
+            </div>
+          </div>
 
-      {/* Right: Close Button */}
-      <button className="text-base-content hover:text-error text-lg">✖</button>
+          {/* User info */}
+          <div>
+            <h3 className="font-medium">{selectedUser.fullName}</h3>
+            <p className="text-sm text-base-content/70">
+              {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+            </p>
+          </div>
+        </div>
+
+        {/* Close button */}
+        <button onClick={() => setSelectedUser(null)}>
+          <X />
+        </button>
+      </div>
     </div>
   );
 };
-
 export default ChatHeader;

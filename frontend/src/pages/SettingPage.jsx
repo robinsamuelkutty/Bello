@@ -73,14 +73,14 @@ const SettingsPage = () => {
                       <div
                         className={`
                           max-w-[80%] rounded-xl p-3 shadow-sm
-                          ${message.isSent ? "bg-primary text-primary-content" : "bg-base-200"}
+                          ${message.isSent ? "bg-primary text-white" : "bg-neutral text-white"}
                         `}
                       >
                         <p className="text-sm">{message.content}</p>
                         <p
                           className={`
                             text-[10px] mt-1.5
-                            ${message.isSent ? "text-primary-content/70" : "text-base-content/70"}
+                            ${message.isSent ? "text-white" : "text-white"}
                           `}
                         >
                           12:00 PM
