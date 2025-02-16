@@ -58,6 +58,33 @@ export const useChatStore = create((set, get) => ({
       });
     });
   },
+  editMessage: async (messageId, { text, image }) => {
+    try {
+      const res = await axiosInstance.put(`/messages/edit/${messageId}`, { 
+        text: text || "",   // Ensure text is always a string
+        image: image || null // Ensure image can be null
+      });
+      
+      const updatedMessages = get().messages.map((message) =>
+        message._id === messageId ? res.data : message
+      );
+      
+      set({ messages: updatedMessages });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
+  
+
+  deleteMessage: async (messageId) => {
+    try {
+      await axiosInstance.delete(`/messages/delete/${messageId}`);
+      const updatedMessages = get().messages.filter((message) => message._id !== messageId);
+      set({ messages: updatedMessages });
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+  },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;

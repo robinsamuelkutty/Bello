@@ -1,6 +1,6 @@
 import React from 'react'
 
-const NoChatSelected = () => {
+function NoChatSelected() {
   return (
     <div>NoChatSelected</div>
   )

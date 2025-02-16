@@ -26,7 +26,7 @@ export const getMessages = async (req, res) => {
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    });
+    }).populate("replyTo"); // Populate the replied message
 
     res.status(200).json(messages);
   } catch (error) {
@@ -35,15 +35,15 @@ export const getMessages = async (req, res) => {
   }
 };
 
+
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo } = req.body; // Accept replyTo field
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
     let imageUrl;
     if (image) {
-      // Upload base64 image to cloudinary
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
@@ -53,6 +53,7 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      replyTo: replyTo ? replyTo : null // Store the reply reference
     });
 
     await newMessage.save();
@@ -65,6 +66,46 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+export const editMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { text } = req.body;
+
+    const updatedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      { text },
+      { new: true }
+    );
+
+    if (!updatedMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.log("Error in editMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+
+    const deletedMessage = await Message.findByIdAndDelete(messageId);
+
+    if (!deletedMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteMessage controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
