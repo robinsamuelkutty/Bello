@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "prop-types": "^15.8.1",
-    "react-bits": "^1.0.5",
-    "react-hooks": "^1.0.1"
-  }
-}
