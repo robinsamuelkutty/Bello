@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "axios": "^1.7.9",
@@ -20,6 +21,8 @@
     "ogl": "^1.0.11",
     "react": "^18.3.1",
     "react-audio-player": "^0.17.0",
+    
+
     "react-dom": "^18.3.1",
     "react-easy-crop": "^5.2.0",
     "react-hot-toast": "^2.5.1",
@@ -27,6 +30,7 @@
     "react-router-dom": "^7.1.1",
     "socket.io-client": "^4.8.1",
     "wavesurfer.js": "^7.9.1",
+
     "zustand": "^5.0.2"
   },
   "devDependencies": {
