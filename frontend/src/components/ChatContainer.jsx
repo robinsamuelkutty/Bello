@@ -310,6 +310,23 @@ const ChatContainer = () => {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  const handleReadAloud = (messageContent) => {
+    if (!messageContent) {
+      console.error("No message content to read aloud.");
+      return;
+    }
+
+    if (!('speechSynthesis' in window)) {
+      console.error("Text-to-speech is not supported in this browser.");
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(messageContent);
+    utterance.lang = 'en-US';
+    utterance.rate = 1;
+    speechSynthesis.speak(utterance);
+  };
+
 
   const handleMessageAction = (action, message) => {
     switch (action) {
@@ -327,6 +344,10 @@ const ChatContainer = () => {
         break;
       case 'delete':
         setDeletingMessage(message);
+        break;
+      
+        case 'readAloud': // New action
+        handleReadAloud(message.text || message.content);
         break;
       default:
         break;
