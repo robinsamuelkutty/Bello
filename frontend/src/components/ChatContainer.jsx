@@ -26,20 +26,37 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
   // Convert base64 to Blob and create an object URL
   const getAudioUrl = (base64String) => {
     if (!base64String) return null;
-
-    // Remove the data URL prefix if present
+  
+    // Remove the prefix if present
     const base64Data = base64String.replace(/^data:audio\/\w+;base64,/, '');
+  
     try {
+      // Decode base64 string
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length).fill().map((_, i) => byteCharacters.charCodeAt(i));
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'audio/mp3' });
+  
+      let decompressedData;
+      try {
+        // Attempt to decompress with pako (for gzip)
+        decompressedData = pako.ungzip(byteArray);
+      } catch (decompressionError) {
+        console.warn("Data might not be compressed, using raw byte array.");
+        decompressedData = byteArray;
+      }
+  
+      console.log("Base64 Length:", base64String.length);
+      console.log("Base64 Preview:", base64String.slice(0, 100));
+  
+      // Create a blob with the (decompressed or original) data
+      const blob = new Blob([decompressedData], { type: 'audio/mpeg' });
       return URL.createObjectURL(blob);
     } catch (e) {
-      console.error("Error converting base64 to blob:", e);
+      console.error("Error converting base64 to decompressed blob:", e); // Line 44
       return null;
     }
   };
+  
 
   // Initialize WaveSurfer
   useEffect(() => {
