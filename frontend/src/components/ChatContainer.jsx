@@ -12,55 +12,39 @@ import ForwardMessageModal from "./ForwardMessageModel";
 import { ChevronDown, Play, Pause, Mic } from "lucide-react";
 import WaveSurfer from 'wavesurfer.js';
 import { franc } from 'franc';
+import summarizeText from "../lib/summarizer";
 
 const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  
+
   const waveformRef = useRef(null);
   const wavesurferRef = useRef(null);
   const containerRef = useRef(null);
+  const abortControllerRef = useRef(new AbortController()); // AbortController for cleanup
 
   // Convert base64 to Blob and create an object URL
   const getAudioUrl = (base64String) => {
     if (!base64String) return null;
-  
-    // Remove the prefix if present
+
     const base64Data = base64String.replace(/^data:audio\/\w+;base64,/, '');
-  
+
     try {
-      // Decode base64 string
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length).fill().map((_, i) => byteCharacters.charCodeAt(i));
       const byteArray = new Uint8Array(byteNumbers);
-  
-      let decompressedData;
-      try {
-        // Attempt to decompress with pako (for gzip)
-        decompressedData = pako.ungzip(byteArray);
-      } catch (decompressionError) {
-        console.warn("Data might not be compressed, using raw byte array.");
-        decompressedData = byteArray;
-      }
-  
-      console.log("Base64 Length:", base64String.length);
-      console.log("Base64 Preview:", base64String.slice(0, 100));
-  
-      // Create a blob with the (decompressed or original) data
-      const blob = new Blob([decompressedData], { type: 'audio/mpeg' });
+      const blob = new Blob([byteArray], { type: 'audio/mpeg' });
       return URL.createObjectURL(blob);
     } catch (e) {
-      console.error("Error converting base64 to decompressed blob:", e); // Line 44
+      console.error("Error converting base64 to blob:", e);
       return null;
     }
   };
-  
 
   // Initialize WaveSurfer
   useEffect(() => {
-    // Make sure WaveSurfer is available
     if (typeof WaveSurfer === 'undefined') {
       console.error("WaveSurfer not loaded. Add it to your index.html or install via npm");
       return;
@@ -69,10 +53,15 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
     const audioUrl = getAudioUrl(message.audio);
     if (!audioUrl || !waveformRef.current) return;
 
-    // Get the container width for responsive waveform
     const containerWidth = containerRef.current?.clientWidth || 200;
-    
-    // Create WaveSurfer instance
+
+    // Destroy existing WaveSurfer instance if it exists
+    if (wavesurferRef.current) {
+      wavesurferRef.current.destroy();
+      wavesurferRef.current = null;
+    }
+
+    // Create a new WaveSurfer instance
     const wavesurfer = WaveSurfer.create({
       container: waveformRef.current,
       waveColor: 'rgba(255, 255, 255, 0.3)',
@@ -84,14 +73,15 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       height: 32,
       normalize: true,
       responsive: true,
-      width: containerWidth - 80 // Adjust width based on container minus buttons/icons
+      width: containerWidth - 80,
     });
 
-    // Load audio
-    wavesurfer.load(audioUrl);
     wavesurferRef.current = wavesurfer;
 
-    // Set up event listeners
+    // Load audio with AbortController signal
+    const abortSignal = abortControllerRef.current.signal;
+    wavesurfer.load(audioUrl, null, abortSignal);
+
     wavesurfer.on('ready', () => {
       setDuration(wavesurfer.getDuration());
       setIsLoaded(true);
@@ -105,10 +95,17 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       setIsPlaying(false);
     });
 
-    // Cleanup on unmount
+    // Cleanup function to destroy WaveSurfer instance on unmount
     return () => {
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
-      if (wavesurfer) wavesurfer.destroy();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
+        wavesurferRef.current = null;
+      }
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      abortControllerRef.current.abort(); // Abort any ongoing audio loading
+      abortControllerRef.current = new AbortController(); // Reset AbortController for next render
     };
   }, [message.audio]);
 
@@ -126,7 +123,7 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
 
   const togglePlayPause = () => {
     if (!wavesurferRef.current || !isLoaded) return;
-    
+
     if (isPlaying) {
       wavesurferRef.current.pause();
     } else {
@@ -145,15 +142,14 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
   return (
     <div className={`relative group max-w-xs ${isSender ? 'ml-auto' : 'mr-auto'}`}>
       <ReplyPreview message={message} isSender={isSender} senderName={senderName} />
-      
-      <div 
+      <div
         ref={containerRef}
         className={`flex items-center p-3 rounded-lg ${
           isSender ? 'bg-primary text-white' : 'bg-neutral text-white'
         }`}
       >
         {/* Play/Pause Button */}
-        <button 
+        <button
           onClick={togglePlayPause}
           disabled={!isLoaded}
           className={`flex-shrink-0 bg-white rounded-full p-2 mr-3 ${!isLoaded && 'opacity-50'}`}
@@ -164,20 +160,20 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
             <Play className="size-4 text-primary" />
           )}
         </button>
-        
+
         {/* Waveform */}
         <div className="flex-1 mr-2">
           <div ref={waveformRef} className="w-full"></div>
         </div>
-        
+
         {/* Duration */}
         <div className="text-xs whitespace-nowrap min-w-10 text-right">
           {formatTime(isPlaying ? currentTime : (duration || 0))}
         </div>
-        
+
         {/* Mic Icon (optional) */}
         <Mic className="size-3 ml-2 opacity-50 flex-shrink-0" />
-        
+
         {/* Actions Button */}
         <button
           className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -186,7 +182,7 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           <ChevronDown className="size-4" />
         </button>
       </div>
-      
+
       {/* Dropdown Menu */}
       {showDropdown && (
         <div className={`absolute ${isSender ? 'right-full mr-2' : 'left-full ml-2'} top-0 z-10`}>
@@ -219,6 +215,8 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
     </div>
   );
 };
+
+// Rest of the code remains the same...
 
 const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
   return (
@@ -274,7 +272,17 @@ const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdo
   );
 };
 
-const TextMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
+const TextMessage = ({
+  message,
+  isSender,
+  senderName,
+  onActionClick,
+  showDropdown,
+  onAction,
+  summarizedText,
+  showOriginal,
+  onToggle,
+}) => {
   // Function to detect URLs in text and convert them to JSX elements
   const renderTextWithLinks = (text) => {
     // Regular expression to match URLs
@@ -318,7 +326,30 @@ const TextMessage = ({ message, isSender, senderName, onActionClick, showDropdow
       } p-3 rounded-lg max-w-[100%]`}>
 
         <div className="flex flex-col w-full">
-          <p>{renderTextWithLinks(message.displayText || message.text)}</p>
+          {/* Show summarized text or original text based on the `showOriginal` state */}
+          {summarizedText && !showOriginal ? (
+            <>
+              <p>{summarizedText}</p>
+              <button
+                onClick={onToggle} // Toggle to show the original text
+                className="text-xs text-gray-300 underline mt-1"
+              >
+                Show Original
+              </button>
+            </>
+          ) : (
+            <>
+              <p>{renderTextWithLinks(message.displayText || message.text)}</p>
+              {summarizedText && ( // Show "Show Summary" button if summarized text exists
+                <button
+                  onClick={onToggle} // Toggle to show the summarized text
+                  className="text-xs text-gray-300 underline mt-1"
+                >
+                  Show Summary
+                </button>
+              )}
+            </>
+          )}
           {message.isTranslated && (
             <div className="text-xs mt-1 opacity-70">
               Translated from {message.originalLanguage || 'original language'}
@@ -371,6 +402,8 @@ const ChatContainer = () => {
   const [replyingMessage, setReplyingMessage] = useState(null);
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [displayMessages, setDisplayMessages] = useState([]);
+  const [summarizedMessages, setSummarizedMessages] = useState({});
+  const [showOriginal, setShowOriginal] = useState({});
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -484,7 +517,7 @@ const ChatContainer = () => {
     speechSynthesis.speak(utterance);
   };
 
-  const handleMessageAction = (action, message) => {
+  const handleMessageAction = async (action, message) => {
     switch (action) {
       case 'reply':
         setReplyingMessage(message);
@@ -507,6 +540,23 @@ const ChatContainer = () => {
         break;
       case 'readAloud':
         handleReadAloud(message.displayText || message.text || message.content);
+        break;
+      case 'summarize':
+        console.log("Summarizing message:", message.text);
+        try {
+          const summary = await summarizeText(message.text);
+          console.log("Summarized text:", summary);
+          setSummarizedMessages((prev) => ({
+            ...prev,
+            [message._id]: summary, // Store the summarized message
+          }));
+          setShowOriginal((prev) => ({
+            ...prev,
+            [message._id]: false, // Default to showing summary
+          }));
+        } catch (error) {
+          console.error("Error summarizing message:", error);
+        }
         break;
       default:
         break;
@@ -582,6 +632,14 @@ const ChatContainer = () => {
                   onActionClick={() => setActiveDropdown(activeDropdown === message._id ? null : message._id)}
                   showDropdown={activeDropdown === message._id}
                   onAction={(action,msg) => handleMessageAction(action, msg)}
+                  summarizedText={summarizedMessages[message._id]} // Pass summarized text
+                  showOriginal={showOriginal[message._id]} // Pass toggle state
+                  onToggle={() =>
+                    setShowOriginal((prev) => ({
+                      ...prev,
+                      [message._id]: !prev[message._id], // Toggle summary view
+                    }))
+                  }
                 />
               )}
             </div>

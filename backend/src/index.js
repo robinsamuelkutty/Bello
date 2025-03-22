@@ -10,6 +10,7 @@ import { connectDB } from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
+import summarizeRoutes from "./routes/summarize.route.js";
 import zegoRoutes from "./routes/zego.route.js"
 
 dotenv.config();
@@ -35,7 +36,8 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
-app.use("/api/zego",zegoRoutes)
+app.use("/api/zego",zegoRoutes);
+app.use("/api/summarize", summarizeRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -44,7 +46,8 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
 }
-
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 server.listen(PORT, () => {
   console.log("server is running on PORT:" + PORT);

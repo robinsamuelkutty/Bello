@@ -1,7 +1,8 @@
-import { Copy, Edit, Forward, Reply, Trash2, Languages,ChevronDown ,ChevronUp,Volume2} from "lucide-react";
+import { Copy, Edit, Forward, Reply, Trash2, Languages,ChevronDown ,ChevronUp,Volume2,FileText} from "lucide-react";
 import { useState } from "react";
 
 export const MessageActions = ({ message, onAction, isSender }) => {
+  const wordCount = message.text ? message.text.split(/\s+/).length : 0;
   const [showLanguages, setShowLanguages] = useState(false);
 
   const languages = [
@@ -59,6 +60,17 @@ export const MessageActions = ({ message, onAction, isSender }) => {
             >
               <Edit className="size-4" />
               Edit
+            </button>
+          </li>
+        )}
+        {wordCount > 50 && (
+          <li>
+            <button 
+              onClick={() => onAction('summarize', message)}
+              className="w-full px-4 py-2 text-sm flex items-center gap-2 hover:bg-base-300"
+            >
+              <FileText className="size-4" />  {/* Icon for Summarize */}
+              Summarize
             </button>
           </li>
         )}

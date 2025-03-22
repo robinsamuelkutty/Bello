@@ -146,3 +146,39 @@ export const deleteMessage = async (req, res) => {
     res.status(500).json({ error: error.message || "Internal server error" });
   }
 };
+
+export const summarizeMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "No text provided for summarization" });
+    }
+
+    // Call an external AI API to summarize (Replace with your AI service)
+    const summary = await getSummary(text);
+
+    res.status(200).json({ summary });
+  } catch (error) {
+    console.error("Error in summarizeMessage:", error.message);
+    res.status(500).json({ error: "Failed to summarize text" });
+  }
+};
+
+// Function to summarize text (Using OpenAI API as an example)
+const getSummary = async (text) => {
+  const API_KEY = "your-api-key-here"; // Replace with your API key
+
+  const response = await axios.post(
+    "https://api.openai.com/v1/completions",
+    {
+      model: "text-davinci-003",
+      prompt: `Summarize this: ${text}`,
+      max_tokens: 50,
+    },
+    {
+      headers: { Authorization: `Bearer ${API_KEY}` },
+    }
+  );
+
+  return response.data.choices[0].text.trim();
+};
