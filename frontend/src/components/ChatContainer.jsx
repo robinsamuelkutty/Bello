@@ -1,3 +1,4 @@
+// File: frontend/src/components/ChatContainer.jsx
 import { useEffect, useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
@@ -10,11 +11,12 @@ import { ReplyPreview } from "../lib/ReplyPreview";
 import { MessageActions } from "../lib/MessageActions";
 import ForwardMessageModal from "./ForwardMessageModel";
 import { ChevronDown, Play, Pause, Mic } from "lucide-react";
-import WaveSurfer from 'wavesurfer.js';
-import { franc } from 'franc';
+import WaveSurfer from "wavesurfer.js";
+import { franc } from "franc";
 import summarizeText from "../lib/summarizer";
 
 const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
+  // ... (AudioMessage code remains unchanged) ...
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -23,14 +25,11 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
   const waveformRef = useRef(null);
   const wavesurferRef = useRef(null);
   const containerRef = useRef(null);
-  const abortControllerRef = useRef(new AbortController()); // AbortController for cleanup
+  const abortControllerRef = useRef(new AbortController());
 
-  // Convert base64 to Blob and create an object URL
   const getAudioUrl = (base64String) => {
     if (!base64String) return null;
-
     const base64Data = base64String.replace(/^data:audio\/\w+;base64,/, '');
-
     try {
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length).fill().map((_, i) => byteCharacters.charCodeAt(i));
@@ -43,25 +42,18 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
     }
   };
 
-  // Initialize WaveSurfer
   useEffect(() => {
     if (typeof WaveSurfer === 'undefined') {
       console.error("WaveSurfer not loaded. Add it to your index.html or install via npm");
       return;
     }
-
     const audioUrl = getAudioUrl(message.audio);
     if (!audioUrl || !waveformRef.current) return;
-
     const containerWidth = containerRef.current?.clientWidth || 200;
-
-    // Destroy existing WaveSurfer instance if it exists
     if (wavesurferRef.current) {
       wavesurferRef.current.destroy();
       wavesurferRef.current = null;
     }
-
-    // Create a new WaveSurfer instance
     const wavesurfer = WaveSurfer.create({
       container: waveformRef.current,
       waveColor: 'rgba(255, 255, 255, 0.3)',
@@ -75,27 +67,19 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       responsive: true,
       width: containerWidth - 80,
     });
-
     wavesurferRef.current = wavesurfer;
-
-    // Load audio with AbortController signal
     const abortSignal = abortControllerRef.current.signal;
     wavesurfer.load(audioUrl, null, abortSignal);
-
     wavesurfer.on('ready', () => {
       setDuration(wavesurfer.getDuration());
       setIsLoaded(true);
     });
-
     wavesurfer.on('audioprocess', () => {
       setCurrentTime(wavesurfer.getCurrentTime());
     });
-
     wavesurfer.on('finish', () => {
       setIsPlaying(false);
     });
-
-    // Cleanup function to destroy WaveSurfer instance on unmount
     return () => {
       if (wavesurferRef.current) {
         wavesurferRef.current.destroy();
@@ -104,26 +88,23 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
-      abortControllerRef.current.abort(); // Abort any ongoing audio loading
-      abortControllerRef.current = new AbortController(); // Reset AbortController for next render
+      abortControllerRef.current.abort();
+      abortControllerRef.current = new AbortController();
     };
   }, [message.audio]);
 
-  // Handle window resize for responsive waveform
   useEffect(() => {
     const handleResize = () => {
       if (wavesurferRef.current && containerRef.current) {
         wavesurferRef.current.setWidth(containerRef.current.clientWidth - 80);
       }
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const togglePlayPause = () => {
     if (!wavesurferRef.current || !isLoaded) return;
-
     if (isPlaying) {
       wavesurferRef.current.pause();
     } else {
@@ -144,11 +125,8 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       <ReplyPreview message={message} isSender={isSender} senderName={senderName} />
       <div
         ref={containerRef}
-        className={`flex items-center p-3 rounded-lg ${
-          isSender ? 'bg-primary text-white' : 'bg-neutral text-white'
-        }`}
+        className={`flex items-center p-3 rounded-lg ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'}`}
       >
-        {/* Play/Pause Button */}
         <button
           onClick={togglePlayPause}
           disabled={!isLoaded}
@@ -160,21 +138,13 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
             <Play className="size-4 text-primary" />
           )}
         </button>
-
-        {/* Waveform */}
         <div className="flex-1 mr-2">
           <div ref={waveformRef} className="w-full"></div>
         </div>
-
-        {/* Duration */}
         <div className="text-xs whitespace-nowrap min-w-10 text-right">
           {formatTime(isPlaying ? currentTime : (duration || 0))}
         </div>
-
-        {/* Mic Icon (optional) */}
         <Mic className="size-3 ml-2 opacity-50 flex-shrink-0" />
-
-        {/* Actions Button */}
         <button
           className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
           onClick={onActionClick}
@@ -182,8 +152,6 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           <ChevronDown className="size-4" />
         </button>
       </div>
-
-      {/* Dropdown Menu */}
       {showDropdown && (
         <div className={`absolute ${isSender ? 'right-full mr-2' : 'left-full ml-2'} top-0 z-10`}>
           <MessageActions
@@ -193,12 +161,8 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           />
         </div>
       )}
-
-      {/* Message Text (if any) */}
       {message.text && (
-        <div className={`mt-1 px-3 py-2 rounded-lg ${
-          isSender ? 'bg-primary text-white' : 'bg-neutral text-white'
-        }`}>
+        <div className={`mt-1 px-3 py-2 rounded-lg ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'}`}>
           <p>{message.displayText || message.text}</p>
           {message.isTranslated && (
             <div className="text-xs mt-1 opacity-70">
@@ -207,16 +171,12 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           )}
         </div>
       )}
-
-      {/* Timestamp */}
       <div className="text-xs opacity-50 mt-1">
         {formatMessageTime(message.createdAt)}
       </div>
     </div>
   );
 };
-
-// Rest of the code remains the same...
 
 const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
   return (
@@ -228,17 +188,12 @@ const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           alt="Attachment"
           className="rounded-lg object-cover h-64 w-full"
         />
-
-        {/* Actions Button */}
         <button
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity
-                     bg-black/50 p-1 rounded-full"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1 rounded-full"
           onClick={onActionClick}
         >
           <ChevronDown className="size-4 text-white" />
         </button>
-
-        {/* Dropdown Menu */}
         {showDropdown && (
           <div className={`absolute ${isSender ? 'right-full mr-2' : 'left-full ml-2'} top-0`}>
             <MessageActions
@@ -249,12 +204,8 @@ const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           </div>
         )}
       </div>
-
-      {/* Message Text (if any) */}
       {message.text && (
-        <div className={`mt-1 px-3 py-2 rounded-lg ${
-          isSender ? 'bg-primary text-white' : 'bg-neutral text-white'
-        }`}>
+        <div className={`mt-1 px-3 py-2 rounded-lg ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'}`}>
           <p>{message.displayText || message.text}</p>
           {message.isTranslated && (
             <div className="text-xs mt-1 opacity-70">
@@ -263,8 +214,6 @@ const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdo
           )}
         </div>
       )}
-
-      {/* Timestamp */}
       <div className="text-xs opacity-50 mt-1">
         {formatMessageTime(message.createdAt)}
       </div>
@@ -283,22 +232,14 @@ const TextMessage = ({
   showOriginal,
   onToggle,
 }) => {
-  // Function to detect URLs in text and convert them to JSX elements
   const renderTextWithLinks = (text) => {
-    // Regular expression to match URLs
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-    
-    // If no URLs found, return the text as is
     if (!urlRegex.test(text)) {
       return text;
     }
-    
-    // Split the text by URLs and create an array of text and link elements
     const parts = text.split(urlRegex);
     const matches = text.match(urlRegex) || [];
-    
     return parts.map((part, index) => {
-      // If this part is a URL (it matches with a URL from matches array)
       if (matches.includes(part)) {
         return (
           <a 
@@ -307,13 +248,12 @@ const TextMessage = ({
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-300 underline hover:text-blue-100 break-all"
-            onClick={(e) => e.stopPropagation()} // Prevent dropdown from opening when clicking the link
+            onClick={(e) => e.stopPropagation()}
           >
             {part}
           </a>
         );
       }
-      // Return regular text
       return part;
     });
   };
@@ -321,17 +261,13 @@ const TextMessage = ({
   return (
     <div className={`relative group max-w-xs ${isSender ? 'ml-auto' : 'mr-auto'}`}>
       <ReplyPreview message={message} isSender={isSender} senderName={senderName} />
-      <div className={`chat-bubble relative flex items-center ${
-        isSender ? 'bg-primary text-white' : 'bg-neutral text-white'
-      } p-3 rounded-lg max-w-[100%]`}>
-
+      <div className={`chat-bubble relative flex items-center ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'} p-3 rounded-lg max-w-[100%]`}>
         <div className="flex flex-col w-full">
-          {/* Show summarized text or original text based on the `showOriginal` state */}
           {summarizedText && !showOriginal ? (
             <>
               <p>{summarizedText}</p>
               <button
-                onClick={onToggle} // Toggle to show the original text
+                onClick={onToggle}
                 className="text-xs text-gray-300 underline mt-1"
               >
                 Show Original
@@ -340,9 +276,9 @@ const TextMessage = ({
           ) : (
             <>
               <p>{renderTextWithLinks(message.displayText || message.text)}</p>
-              {summarizedText && ( // Show "Show Summary" button if summarized text exists
+              {summarizedText && (
                 <button
-                  onClick={onToggle} // Toggle to show the summarized text
+                  onClick={onToggle}
                   className="text-xs text-gray-300 underline mt-1"
                 >
                   Show Summary
@@ -356,14 +292,12 @@ const TextMessage = ({
             </div>
           )}
         </div>
-
         <button
           className={`${isSender ? 'mr-2' : 'ml-2'} opacity-0 group-hover:opacity-100 transition-opacity`}
           onClick={onActionClick}
         >
           <ChevronDown className="size-4" />
         </button>
-
         {showDropdown && (
           <div className={`absolute ${isSender ? 'right-full mr-2' : 'left-full ml-2'} top-0`}>
             <MessageActions
@@ -381,7 +315,6 @@ const TextMessage = ({
   );
 };
 
-// ChatContainer Component
 const ChatContainer = () => {
   const {
     messages,
@@ -392,10 +325,11 @@ const ChatContainer = () => {
     unsubscribeFromMessages,
     editMessage,
     deleteMessage,
+    isGeminiTyping,
   } = useChatStore();
   const { authUser } = useAuthStore();
-  const messageEndRef = useRef(null);
   const { theme } = useThemeStore();
+  
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [deletingMessage, setDeletingMessage] = useState(null);
@@ -404,84 +338,58 @@ const ChatContainer = () => {
   const [displayMessages, setDisplayMessages] = useState([]);
   const [summarizedMessages, setSummarizedMessages] = useState({});
   const [showOriginal, setShowOriginal] = useState({});
-
+  
+  // Create a ref for auto-scrolling to the bottom
+  const messageEndRef = useRef(null);
+  
   useEffect(() => {
-    getMessages(selectedUser._id);
-    subscribeToMessages();
+    if (selectedUser && selectedUser._id) {
+      getMessages(selectedUser._id);
+      subscribeToMessages();
+    }
     return () => unsubscribeFromMessages();
   }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
-
+  
   useEffect(() => {
-    if (messageEndRef.current && messages) {
+    if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
-
+  }, [displayMessages, isGeminiTyping]);
+  
   useEffect(() => {
     if (messages) {
-      setDisplayMessages(messages.map(msg => ({ ...msg })));
+      setDisplayMessages(messages.map((msg) => ({ ...msg })));
     }
   }, [messages]);
-
+  
   const translateMessage = async (messageId, targetLanguage) => {
     try {
-      // Find the message in display messages
       const messageIndex = displayMessages.findIndex(m => m._id === messageId);
       if (messageIndex === -1) return;
-  
       const message = displayMessages[messageIndex];
-      console.log("Target Language link",targetLanguage)
-      
-  
-      // Detect the source language using franc
+      console.log("Target Language link", targetLanguage);
       const detectedLanguage = franc(message.text);
-  
-      // Map 3-letter ISO codes to 2-letter ISO codes
       const languageMap = {
-        arb: 'ar', // Arabic
-        eng: 'en', // English
-        spa: 'es', // Spanish
-        fra: 'fr', // French
-        deu: 'de', // German
-        ita: 'it', // Italian
-        por: 'pt', // Portuguese
-        rus: 'ru', // Russian
-        zho: 'zh', // Chinese
-        jpn: 'ja', // Japanese
-        kor: 'ko', // Korean
-        hin: 'hi', // Hindi
-        // Add more mappings as needed
+        arb: 'ar', eng: 'en', spa: 'es', fra: 'fr', deu: 'de',
+        ita: 'it', por: 'pt', rus: 'ru', zho: 'zh', jpn: 'ja',
+        kor: 'ko', hin: 'hi',
       };
-  
-      // Convert the detected language to a 2-letter ISO code
-      const sourceLanguage = languageMap[detectedLanguage] || 'en'; // Fallback to 'en' if the language is not mapped
-  
+      const sourceLanguage = languageMap[detectedLanguage] || 'en';
       console.log("Translating message:", message, "from", sourceLanguage, "to", targetLanguage);
-  
-      // Check if the source and target languages are the same
       if (sourceLanguage === targetLanguage) {
         alert("Source and target languages are the same. Please select a different target language.");
         return;
       }
-  
-      // Call the MyMemory Translation API
       const response = await fetch(
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(message.text)}&langpair=${sourceLanguage}|${targetLanguage}`
       );
-  
-      // Check if the response is successful
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
-  
       const data = await response.json();
-  
-      // Check if the translation is available
       if (!data.responseData || !data.responseData.translatedText) {
         throw new Error("Invalid API response");
       }
-  
-      // Update the message in our display messages array
       const updatedMessages = [...displayMessages];
       updatedMessages[messageIndex] = {
         ...message,
@@ -491,32 +399,28 @@ const ChatContainer = () => {
         isTranslated: true,
         translatedLanguage: targetLanguage
       };
-  
       setDisplayMessages(updatedMessages);
-  
     } catch (error) {
       console.error("Translation error:", error);
       alert("Translation failed. Please try again later.");
     }
   };
-
+  
   const handleReadAloud = (messageContent) => {
     if (!messageContent) {
       console.error("No message content to read aloud.");
       return;
     }
-
     if (!('speechSynthesis' in window)) {
       console.error("Text-to-speech is not supported in this browser.");
       return;
     }
-
     const utterance = new SpeechSynthesisUtterance(messageContent);
     utterance.lang = 'en-US';
     utterance.rate = 1;
     speechSynthesis.speak(utterance);
   };
-
+  
   const handleMessageAction = async (action, message) => {
     switch (action) {
       case 'reply':
@@ -536,7 +440,7 @@ const ChatContainer = () => {
         break;
       case 'translate':
         translateMessage(message._id, message.targetLanguage);
-        console.log("Translate message in handle message action",message)
+        console.log("Translate message in handle message action", message);
         break;
       case 'readAloud':
         handleReadAloud(message.displayText || message.text || message.content);
@@ -548,11 +452,11 @@ const ChatContainer = () => {
           console.log("Summarized text:", summary);
           setSummarizedMessages((prev) => ({
             ...prev,
-            [message._id]: summary, // Store the summarized message
+            [message._id]: summary,
           }));
           setShowOriginal((prev) => ({
             ...prev,
-            [message._id]: false, // Default to showing summary
+            [message._id]: false,
           }));
         } catch (error) {
           console.error("Error summarizing message:", error);
@@ -563,18 +467,18 @@ const ChatContainer = () => {
     }
     setActiveDropdown(null);
   };
-
+  
   const handleDeleteMessage = async () => {
     if (deletingMessage) {
       await deleteMessage(deletingMessage._id);
       setDeletingMessage(null);
     }
   };
-
+  
   const handleEditComplete = () => {
     setEditingMessage(null);
   };
-
+  
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -588,30 +492,33 @@ const ChatContainer = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="flex-1 flex flex-col overflow-auto" data-theme={theme}>
       <ChatHeader />
-
+  
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {displayMessages.map((message, index) => {
           const isSender = message.senderId === authUser._id;
           const isLastMessage = index === displayMessages.length - 1;
-
+  
           return (
             <div
               key={message._id}
-              className={`chat group relative ${
-                isSender ? "chat-end" : "chat-start"
-              }`}
+              className={`chat group relative ${isSender ? "chat-end" : "chat-start"}`}
               ref={isLastMessage ? messageEndRef : null}
             >
-              {message.audio ? (
+              {message.isTyping ? (
+                // Do not render temporary message; overlay spinner handles indication
+                null
+              ) : message.audio ? (
                 <AudioMessage
                   message={message}
                   isSender={isSender}
                   senderName={selectedUser.fullName}
-                  onActionClick={() => setActiveDropdown(activeDropdown === message._id ? null : message._id)}
+                  onActionClick={() =>
+                    setActiveDropdown(activeDropdown === message._id ? null : message._id)
+                  }
                   showDropdown={activeDropdown === message._id}
                   onAction={(action) => handleMessageAction(action, message)}
                 />
@@ -620,24 +527,28 @@ const ChatContainer = () => {
                   message={message}
                   isSender={isSender}
                   senderName={selectedUser.fullName}
-                  onActionClick={() => setActiveDropdown(activeDropdown === message._id ? null : message._id)}
+                  onActionClick={() =>
+                    setActiveDropdown(activeDropdown === message._id ? null : message._id)
+                  }
                   showDropdown={activeDropdown === message._id}
-                  onAction={(action,msg) => handleMessageAction(action, msg)}
+                  onAction={(action, msg) => handleMessageAction(action, msg)}
                 />
               ) : (
                 <TextMessage
                   message={message}
                   isSender={isSender}
                   senderName={selectedUser.fullName}
-                  onActionClick={() => setActiveDropdown(activeDropdown === message._id ? null : message._id)}
+                  onActionClick={() =>
+                    setActiveDropdown(activeDropdown === message._id ? null : message._id)
+                  }
                   showDropdown={activeDropdown === message._id}
-                  onAction={(action,msg) => handleMessageAction(action, msg)}
-                  summarizedText={summarizedMessages[message._id]} // Pass summarized text
-                  showOriginal={showOriginal[message._id]} // Pass toggle state
+                  onAction={(action, msg) => handleMessageAction(action, msg)}
+                  summarizedText={summarizedMessages[message._id]}
+                  showOriginal={showOriginal[message._id]}
                   onToggle={() =>
                     setShowOriginal((prev) => ({
                       ...prev,
-                      [message._id]: !prev[message._id], // Toggle summary view
+                      [message._id]: !prev[message._id],
                     }))
                   }
                 />
@@ -645,8 +556,11 @@ const ChatContainer = () => {
             </div>
           );
         })}
+  
+        {/* Dummy element for auto-scroll */}
+        <div ref={messageEndRef} />
       </div>
-
+  
       <MessageInput
         replyingMessage={replyingMessage}
         setReplyingMessage={setReplyingMessage}
@@ -654,7 +568,7 @@ const ChatContainer = () => {
         setEditingMessage={setEditingMessage}
         onEditComplete={handleEditComplete}
       />
-
+  
       {deletingMessage && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-base-200 p-6 rounded-lg">
@@ -670,7 +584,7 @@ const ChatContainer = () => {
           </div>
         </div>
       )}
-      
+  
       {forwardingMessage && (
         <ForwardMessageModal 
           message={forwardingMessage}

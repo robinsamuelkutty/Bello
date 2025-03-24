@@ -1,0 +1,1 @@
+export const GEMINI_USER_ID = "63f8a1b2c3d4e5f678901234";
