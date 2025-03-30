@@ -2,12 +2,12 @@ import daisyui from "daisyui";
 import tailwindcss from "tailwindcss";
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
   },
-  plugins: [daisyui, require('tailwindcss-filters')], // Added require()
+  plugins: [daisyui],
   daisyui: {
     themes: [
       "light",
