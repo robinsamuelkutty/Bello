@@ -15,7 +15,7 @@ const SERVER_SECRET = "0ce1fa7feef259b5b4ecb300181067dd"; // Your ZegoCloud App 
 const fetchToken = async (userID) => {
   try {
     console.log('Fetching token for user:', userID);
-    const response = await fetch(`http://localhost:5001/api/zego/token/${userID}`);
+    const response = await fetch(`https://bello-ob8m.onrender.com/api/zego/token/${userID}`);
     const data = await response.json();
     console.log('Token API response:', data);
     if (!data.success) {
