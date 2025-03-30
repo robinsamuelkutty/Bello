@@ -7,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 // Move these to environment variables in a production app
-const APP_ID = 334784404; // Your ZegoCloud App ID
-const SERVER_SECRET = "0ce1fa7feef259b5b4ecb300181067dd"; // Your ZegoCloud App Sign
+const APP_ID = 862876681; // Your ZegoCloud App ID
+const SERVER_SECRET = "affcf7f168a663700df48739ed00ef0f"; // Your ZegoCloud App Sign
 
 // ZegoCloud requires a token for authentication
 // This is a simplified version for client-side - in production, generate tokens on your server
