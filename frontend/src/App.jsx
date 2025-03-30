@@ -6,7 +6,8 @@ import SettingsPage from "./pages/SettingPage";
 import HomePage from "./pages/HomePage";
 import VideoCallPage from "./pages/VideoCallPage";
 import Meet from "./pages/Meet";
-
+import ErrorBoundary from "./components/ErrorBoundary";
+import SpotifySidebar from "./components/SpotifySidebar";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
@@ -49,7 +50,9 @@ const App = () => {
   return (
     <div data-theme={theme}>
       {!hideNavbar && <Navbar />}
-
+      <ErrorBoundary>
+        <SpotifySidebar />
+      </ErrorBoundary>
       <Routes>
         <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
         <Route path="/signup" element={!authUser ? <SignupPage /> : <Navigate to="/" />} />

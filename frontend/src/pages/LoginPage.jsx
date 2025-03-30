@@ -1,8 +1,9 @@
 // src/pages/LoginPage.jsx
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/useChatStore"; // Assumed theme store
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, Loader2, MessageSquareQuote } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Particles from "../components/Particles";
 
 const LoginPage = () => {
@@ -12,11 +13,16 @@ const LoginPage = () => {
     password: "",
   });
   const { login, isLoggingIn } = useAuthStore();
+  // Get the current theme from your chat/theme store
+  const { theme } = useChatStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     await login(formData);
   };
+
+  // Define an inline style for the logo based on the theme.
+  const logoStyle = theme === "dark" ? { filter: "invert(1)" } : {};
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-base-200">
@@ -37,13 +43,18 @@ const LoginPage = () => {
         className="absolute inset-0 z-0 pointer-events-none"
       />
 
-      {/* Login Container - Unified outer container with proper rounded corners */}
+      {/* Login Container */}
       <div className="relative flex flex-col md:flex-row w-full md:w-[900px] h-auto md:h-[500px] overflow-hidden z-10 rounded-2xl shadow-lg">
         {/* Left Side: Login Form */}
         <div className="w-full md:w-1/2 bg-base-100 text-base-content py-8 px-10 flex flex-col justify-center rounded-l-2xl rounded-r-none">
           {/* Logo for Mobile */}
           <div className="flex items-center justify-center mt-4 mb-4 md:hidden">
-            <MessageSquareQuote className="h-16 w-16 text-primary" />
+            <img
+              src="/Bello AI white.svg"
+              alt="Bello AI Logo"
+              className="h-16 w-16"
+              style={logoStyle}
+            />
           </div>
           
           <h2
@@ -134,21 +145,23 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Right Side: Truly Translucent Panel with Logo */}
+        {/* Right Side: Translucent Panel with Logo */}
         <div className="hidden md:flex md:w-1/2 items-center justify-center relative rounded-r-2xl">
-          {/* Glass panel with perfect connection to left panel */}
+          {/* Glass panel */}
           <div className="absolute top-0 right-0 bottom-0 w-full backdrop-blur-sm bg-primary/35 rounded-r-2xl z-20">
-            {/* Subtle gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 mix-blend-overlay rounded-r-2xl"></div>
           </div>
           
-          {/* Logo container with its own glass effect */}
+          {/* Logo container */}
           <div className="relative z-30 flex items-center justify-center">
             <div className="relative p-10 rounded-full">
-              {/* Circular glow behind logo */}
               <div className="absolute inset-0 rounded-full bg-base-100/10 backdrop-blur-md"></div>
-              {/* Logo */}
-              <MessageSquareQuote className="h-32 w-32 text-primary relative z-40 drop-shadow-lg" />
+              <img
+                src="/Bello AI white.svg"
+                alt="Bello AI Logo"
+                className="h-32 w-32 relative z-40 drop-shadow-lg"
+                style={logoStyle}
+              />
             </div>
           </div>
         </div>
@@ -157,4 +170,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default LoginPage;

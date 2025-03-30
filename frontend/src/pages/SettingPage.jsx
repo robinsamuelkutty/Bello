@@ -1,5 +1,8 @@
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { THEMES } from "../constants";
 import { useThemeStore } from "../store/useThemeStore";
+import { useAuthStore } from "../store/useAuthStore"; // assuming this exists
 import { Send } from "lucide-react";
 
 const PREVIEW_MESSAGES = [
@@ -9,13 +12,57 @@ const PREVIEW_MESSAGES = [
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
+  const { authUser } = useAuthStore(); // user authentication state
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
+  const [accessToken, setAccessToken] = useState("");
+
+  // On load, check for tokens in query params or localStorage
+  useEffect(() => {
+    const urlAccessToken = searchParams.get("access_token");
+    const urlRefreshToken = searchParams.get("refresh_token");
+    const urlExpiresIn = searchParams.get("expires_in");
+
+    if (urlAccessToken && urlRefreshToken) {
+      localStorage.setItem("spotify_access_token", urlAccessToken);
+      localStorage.setItem("spotify_refresh_token", urlRefreshToken);
+      localStorage.setItem("spotify_expires_in", urlExpiresIn);
+
+      setAccessToken(urlAccessToken);
+      setSpotifyConnected(true);
+
+      // Clear tokens from URL
+      searchParams.delete("access_token");
+      searchParams.delete("refresh_token");
+      searchParams.delete("expires_in");
+      setSearchParams(searchParams);
+    } else {
+      const storedToken = localStorage.getItem("spotify_access_token");
+      if (storedToken) {
+        setAccessToken(storedToken);
+        setSpotifyConnected(true);
+      }
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Disconnect function: clear tokens and update state
+  const handleDisconnectSpotify = () => {
+    localStorage.removeItem("spotify_access_token");
+    localStorage.removeItem("spotify_refresh_token");
+    localStorage.removeItem("spotify_expires_in");
+    setAccessToken("");
+    setSpotifyConnected(false);
+  };
 
   return (
     <div className="h-screen max-h-screen container mx-auto px-4 pt-20 max-w-5xl overflow-y-auto ">
       <div className="space-y-6">
+        {/* Theme Section */}
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold">Theme</h2>
-          <p className="text-sm text-base-content/70">Choose a theme for your chat interface</p>
+          <p className="text-sm text-base-content/70">
+            Choose a theme for your chat interface
+          </p>
         </div>
 
         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
@@ -28,7 +75,10 @@ const SettingsPage = () => {
               `}
               onClick={() => setTheme(t)}
             >
-              <div className="relative h-8 w-full rounded-md overflow-hidden" data-theme={t}>
+              <div
+                className="relative h-8 w-full rounded-md overflow-hidden"
+                data-theme={t}
+              >
                 <div className="absolute inset-0 grid grid-cols-4 gap-px p-1">
                   <div className="rounded bg-primary"></div>
                   <div className="rounded bg-secondary"></div>
@@ -42,6 +92,41 @@ const SettingsPage = () => {
             </button>
           ))}
         </div>
+
+        {/* Connect to Spotify Section: only show if logged in */}
+        {authUser && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold">Bello Music</h2>
+            <p className="text-sm text-base-content/70">
+              Connect your Spotify account to enable Spotify features.
+            </p>
+            {spotifyConnected ? (
+              <div className="flex flex-col items-center">
+                <p className="text-green-500 font-medium mt-3">
+                  You are connected to Spotify!
+                </p>
+                <button
+                  className="btn btn-secondary mt-3 rounded-full px-6"
+                  onClick={handleDisconnectSpotify}
+                >
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <>
+                <a
+                  href="http://localhost:5001/auth/spotify/login"
+                  className="btn btn-primary mt-3 rounded-full px-6"
+                >
+                  Connect to Spotify
+                </a>
+                <p className="text-xs text-center text-base-content/70 mt-1">
+                  Requires Spotify Premium
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Preview Section */}
         <h3 className="text-lg font-semibold mb-3">Preview</h3>
@@ -77,14 +162,7 @@ const SettingsPage = () => {
                         `}
                       >
                         <p className="text-sm">{message.content}</p>
-                        <p
-                          className={`
-                            text-[10px] mt-1.5
-                            ${message.isSent ? "text-white" : "text-white"}
-                          `}
-                        >
-                          12:00 PM
-                        </p>
+                        <p className="text-[10px] mt-1.5 text-white">12:00 PM</p>
                       </div>
                     </div>
                   ))}
@@ -105,12 +183,15 @@ const SettingsPage = () => {
                     </button>
                   </div>
                 </div>
+
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
 };
+
 export default SettingsPage;

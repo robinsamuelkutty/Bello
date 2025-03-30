@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Eye, EyeOff, Loader2, MessageSquareQuote } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Particles from "../components/Particles";
 import toast from "react-hot-toast";
@@ -30,6 +30,9 @@ const SignUpPage = () => {
     if (validateForm()) signup(formData);
   };
 
+  // Define an inline style for the logo based on the theme.
+  const logoStyle = {};
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-base-200">
       {/* Particles Background */}
@@ -55,9 +58,14 @@ const SignUpPage = () => {
         <div className="w-full md:w-1/2 bg-base-100 text-base-content py-8 px-10 flex flex-col justify-center rounded-l-2xl rounded-r-none">
           {/* Logo for Mobile */}
           <div className="flex items-center justify-center mt-4 mb-4 md:hidden">
-            <MessageSquareQuote className="h-16 w-16 text-primary" />
+            <img
+              src="/Bello AI white.svg"
+              alt="Bello AI Logo"
+              className="h-16 w-16"
+              style={logoStyle}
+            />
           </div>
-          
+
           <h2
             className="text-3xl font-bold text-center mb-3"
             style={{ fontFamily: "Product Sans, sans-serif" }}
@@ -159,14 +167,19 @@ const SignUpPage = () => {
             {/* Subtle gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 mix-blend-overlay rounded-r-2xl"></div>
           </div>
-          
+
           {/* Logo container with its own glass effect */}
           <div className="relative z-30 flex items-center justify-center">
             <div className="relative p-10 rounded-full">
               {/* Circular glow behind logo */}
               <div className="absolute inset-0 rounded-full bg-base-100/10 backdrop-blur-md"></div>
               {/* Logo */}
-              <MessageSquareQuote className="h-32 w-32 text-primary relative z-40 drop-shadow-lg" />
+              <img
+                src="/Bello AI white.svg"
+                alt="Bello AI Logo"
+                className="h-32 w-32 relative z-40 drop-shadow-lg"
+                style={logoStyle}
+              />
             </div>
           </div>
         </div>

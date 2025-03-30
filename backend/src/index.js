@@ -12,6 +12,7 @@ import messageRoutes from "./routes/message.route.js";
 import { app, server } from "./lib/socket.js";
 import summarizeRoutes from "./routes/summarize.route.js";
 import zegoRoutes from "./routes/zego.route.js"
+import spotifyAuthRoutes from "./routes/spotify.route.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/zego",zegoRoutes);
 app.use("/api/summarize", summarizeRoutes);
+app.use("/auth/spotify", spotifyAuthRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
