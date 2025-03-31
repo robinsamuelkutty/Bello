@@ -41,7 +41,7 @@ Bello is a **real-time messaging and video conferencing platform** that combines
 ### **Backend Setup**
 1. Clone the repository:
    ```sh
-   git clone [https://github.com/yourusername/bello.git](https://github.com/robinsamuelkutty/Bello.git)
+   git clone https://github.com/yourusername/bello.git
    cd bello/backend
    ```
 2. Install dependencies:
@@ -70,7 +70,7 @@ Bello is a **real-time messaging and video conferencing platform** that combines
    ```
 4. Start the backend server:
    ```sh
-   npm start
+   npm run dev
    ```
 
 ### **Frontend Setup**
