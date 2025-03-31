@@ -22,18 +22,18 @@ Bello is a **real-time messaging and video conferencing platform** that combines
 ## Tech Stack
 
 ### **Frontend**
-- **React.js** / **Vue.js**
+- **React.js** 
 - Tailwind CSS
 
 ### **Backend**
 - **Node.js** + **Express.js**
-- **MongoDB** / **Firebase**
-- **WebRTC** / **OpenVidu**
+- **MongoDB** 
+- **WebRTC** 
 - **ZegoCloud SDK** (Voice/Video Calls)
-- **Ethereum / Hyperledger** (Blockchain Backup)
-- **Web3.Storage** (IPFS Backup)
-- **Google Translate API** / **DeepL API** (Translation)
-- **OpenAI APIs** / **AWS Polly** (AI Features)
+- **Ethereum  (Blockchain Backup)
+- **Pinata** (IPFS Backup)
+- **Google Translate API** (Translation)
+- **OpenAI APIs** (AI Features)
 - **Spotify Web API** (Music Integration)
 
 ## 🔧 Installation & Setup
