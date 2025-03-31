@@ -1,4 +1,4 @@
-// backend/src/routes/spotify.route.js
+
 import express from "express";
 import axios from "axios";
 import querystring from "querystring";
