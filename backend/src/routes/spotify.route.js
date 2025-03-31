@@ -1,4 +1,4 @@
-// backend/src/routes/spotify.route.js
+
 import express from "express";
 import axios from "axios";
 import querystring from "querystring";
@@ -60,7 +60,7 @@ router.get("/callback", async (req, res) => {
 
     // Redirect to the frontend with tokens in query parameters (adjust as needed)
     res.redirect(
-      "http://localhost:5173/settings?" +
+      "https://bello-ob8m.onrender.com/settings?" +
         querystring.stringify({
           access_token,
           refresh_token,

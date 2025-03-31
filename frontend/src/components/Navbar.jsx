@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogOut, Music, Settings, User, Video } from "lucide-react";
-// Import the Spotify sidebar store
+
 import { useSpotifySidebarStore } from "../store/useSpotifySidebarStore";
 
 const Navbar = () => {

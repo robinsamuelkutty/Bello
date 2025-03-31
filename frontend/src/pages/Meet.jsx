@@ -22,8 +22,8 @@ export function getUrlParams(url = window.location.href) {
 }
 
 // ZegoCloud credentials
-const APP_ID = 1953894615;
-const SERVER_SECRET = "4a2b70f921ffb41b3a272a07caa8d9da";
+const APP_ID = 1999831428;
+const SERVER_SECRET = "26367bcc18fbbb5b648d0d965e469159";
 
 export default function Meet() {
   // Store the roomID in state to make it stable across re-renders

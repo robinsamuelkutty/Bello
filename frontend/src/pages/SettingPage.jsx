@@ -115,7 +115,7 @@ const SettingsPage = () => {
             ) : (
               <>
                 <a
-                  href="http://localhost:5001/auth/spotify/login"
+                  href="https://bello-ob8m.onrender.com/auth/spotify/login"
                   className="btn btn-primary mt-3 rounded-full px-6"
                 >
                   Connect to Spotify
