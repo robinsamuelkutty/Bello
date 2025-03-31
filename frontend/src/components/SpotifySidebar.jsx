@@ -6,13 +6,34 @@ import VolumeControl from "./VolumeControl";
 import SeekBar from "./SeekBar";
 import axios from "axios";
 import { X, Play, Pause, SkipForward, SkipBack, Shuffle } from "lucide-react";
-import { useChatStore } from "../store/useChatStore";
+import { Link } from "react-router-dom";
 
 const SpotifySidebar = () => {
   const { isVisible, setVisible } = useSpotifySidebarStore();
-  const { theme } = useChatStore();
-  const token = localStorage.getItem("spotify_access_token");
-  if (!token) return null;
+
+  // For a consistent Spotify theme, we use fixed color values.
+  const primaryText = "text-white";
+  const secondaryText = "text-gray-300";
+  const borderColor = "border-[#282828]";
+  const bgOverlay = "bg-[#121212] bg-opacity-80";
+
+  const [token, setToken] = useState(localStorage.getItem("spotify_access_token"));
+
+  useEffect(() => {
+    if (isVisible) {
+      setToken(localStorage.getItem("spotify_access_token"));
+    }
+  }, [isVisible]);
+
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === "spotify_access_token") {
+        setToken(event.newValue);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const [user, setUser] = useState(null);
   const [playlists, setPlaylists] = useState([]);
@@ -22,11 +43,9 @@ const SpotifySidebar = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
   const [shuffle, setShuffle] = useState(false);
-  // New state to hold search results as a queue
   const [searchQueue, setSearchQueue] = useState(null);
 
   const intervalRef = useRef(null);
-
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -34,21 +53,24 @@ const SpotifySidebar = () => {
   }, []);
 
   useEffect(() => {
-    axios
-      .get("https://api.spotify.com/v1/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setUser(res.data))
-      .catch((err) => console.error("Error fetching user profile:", err));
-  }, [token]);
+    if (token) {
+      axios
+        .get("https://api.spotify.com/v1/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setUser(res.data))
+        .catch((err) => console.error("Error fetching user profile:", err));
 
-  useEffect(() => {
-    axios
-      .get("https://api.spotify.com/v1/me/playlists", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setPlaylists(res.data.items))
-      .catch((err) => console.error("Error fetching playlists:", err));
+      axios
+        .get("https://api.spotify.com/v1/me/playlists", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => setPlaylists(res.data.items))
+        .catch((err) => console.error("Error fetching playlists:", err));
+    } else {
+      setUser(null);
+      setPlaylists([]);
+    }
   }, [token]);
 
   const handleStateChange = useCallback(
@@ -119,14 +141,12 @@ const SpotifySidebar = () => {
     }
   };
 
-  // Updated skip functions to handle random song selection when playing from search results.
   const handleSkipForward = () => {
     if (!deviceId) {
       console.error("No active device or missing token");
       return;
     }
     if (searchQueue && searchQueue.length > 0) {
-      // Select a random track from the search results
       const randomTrack =
         searchQueue[Math.floor(Math.random() * searchQueue.length)];
       const uris = searchQueue.map((t) => t.uri);
@@ -160,7 +180,6 @@ const SpotifySidebar = () => {
       return;
     }
     if (searchQueue && searchQueue.length > 0) {
-      // Select a random track from the search results
       const randomTrack =
         searchQueue[Math.floor(Math.random() * searchQueue.length)];
       const uris = searchQueue.map((t) => t.uri);
@@ -265,7 +284,6 @@ const SpotifySidebar = () => {
       setNowPlaying(null);
       setCurrentTime(0);
       if (intervalRef.current) clearInterval(intervalRef.current);
-      // Reapply shuffle state when starting a new playlist.
       await axios.put(
         `https://api.spotify.com/v1/me/player/shuffle?state=${shuffle}&device_id=${deviceId}`,
         {},
@@ -292,141 +310,154 @@ const SpotifySidebar = () => {
 
   return (
     <div
-      className={`fixed top-16 right-0 h-[calc(100vh-64px)] w-96 bg-[#121212] text-white transition-transform duration-300 ease-in-out 
-        ${isVisible ? "translate-x-0" : "translate-x-full"} shadow-2xl overflow-y-auto z-50`}
+      className={`fixed top-16 right-4 h-[calc(100vh-80px)] w-96 ${bgOverlay} backdrop-blur-lg rounded-xl p-4 transition-transform duration-300 ease-in-out 
+        ${isVisible ? "translate-x-0" : "translate-x-full"} shadow-2xl z-50`}
     >
       {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-[#282828]">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-2">
           <img src="/Bello AI white.svg" alt="BMusic" className="h-12 w-12" />
-          <span className="text-lg font-bold">Bello Music</span>
+          <span className={`text-lg font-bold ${primaryText}`}>Bello Music</span>
         </div>
         <button
           onClick={handleCloseClick}
-          className="hover:bg-[#282828] p-2 rounded-full"
+          className="hover:bg-gray-800 p-2 rounded-full"
           title="Close sidebar"
         >
-          <X size={20} />
+          <X size={20} className={primaryText} />
         </button>
       </div>
 
-      {/* User Profile */}
-      {user ? (
-        <div className="p-4 flex items-center space-x-3 border-b border-[#282828]">
-          <img
-            src={user.images?.[0]?.url || "/default-avatar.png"}
-            alt={user.display_name}
-            className="w-12 h-12 rounded-full"
-          />
-          <div>
-            <div className="font-semibold">{user.display_name}</div>
-            <div className="text-sm text-[#666]">
-              {user.product === "premium" ? "Premium Member" : "Free Account"}
-            </div>
+      {/* Conditional Content */}
+      {!token ? (
+        <div className="flex h-full items-center justify-center">
+          <div className="p-4 text-center">
+            <p className={`mb-4 ${primaryText}`}>
+              You are not connected to Spotify. Please connect your account via the{" "}
+              <Link to="/settings" className="underline text-[#1db954]">
+                Settings
+              </Link>{" "}
+              page.
+            </p>
           </div>
         </div>
       ) : (
-        <div className="p-4 text-[#666]">Loading user...</div>
-      )}
-
-      {/* Now Playing */}
-      <div className="p-4 border-b border-[#282828]">
-        <h3 className="text-sm uppercase text-[#666] mb-2">Now Playing</h3>
-        {nowPlaying && nowPlaying.track ? (
-          <div>
-            <div className="flex items-center space-x-3 mb-2">
+        <>
+          {/* User Profile */}
+          {user ? (
+            <div className={`flex items-center space-x-3 mb-4 border-b ${borderColor} pb-4`}>
               <img
-                src={nowPlaying.track.album?.images?.[0]?.url || "/default-album.png"}
-                alt="Album art"
-                className="w-16 h-16 rounded"
+                src={user.images?.[0]?.url || "/default-avatar.png"}
+                alt={user.display_name}
+                className="w-12 h-12 rounded-full"
               />
               <div>
-                <div className="font-semibold">{nowPlaying.track.name}</div>
-                <div className="text-sm text-[#666]">
-                  {nowPlaying.track.artists?.[0]?.name}
-                </div>
-                <div className="text-green-500 text-xs mt-1">
-                  {nowPlaying.isPaused ? "Paused" : "Playing"}
+                <div className={`font-semibold ${primaryText}`}>{user.display_name}</div>
+                <div className={`text-sm ${secondaryText}`}>
+                  {user.product === "premium" ? "Premium Member" : "Free Account"}
                 </div>
               </div>
             </div>
-            <SeekBar
-              duration={nowPlaying.duration}
-              currentTime={currentTime}
-              onSeek={handleSeek}
-            />
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-4">
-                <button onClick={handleSkipBack} className="hover:text-green-500">
-                  <SkipBack size={20} />
-                </button>
-                <button onClick={handlePlayPause} className="hover:text-green-500">
-                  {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                </button>
-                <button onClick={handleSkipForward} className="hover:text-green-500">
-                  <SkipForward size={20} />
-                </button>
-                <button
-                  onClick={handleShuffleToggle}
-                  className="relative hover:text-green-500"
-                >
-                  <Shuffle size={20} color={shuffle ? "#1db954" : "white"} />
-                  {shuffle && (
-                    <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full"></span>
-                  )}
-                </button>
+          ) : (
+            <div className="mb-4 text-gray-400">Loading user...</div>
+          )}
+
+          {/* Now Playing */}
+          <div className={`mb-4 border-b ${borderColor} pb-4`}>
+            <h3 className={`text-sm uppercase ${secondaryText} mb-2`}>Now Playing</h3>
+            {nowPlaying && nowPlaying.track ? (
+              <div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <img
+                    src={nowPlaying.track.album?.images?.[0]?.url || "/default-album.png"}
+                    alt="Album art"
+                    className="w-16 h-16 rounded"
+                  />
+                  <div>
+                    <div className={`font-semibold ${primaryText}`}>{nowPlaying.track.name}</div>
+                    <div className={`text-sm ${secondaryText}`}>
+                      {nowPlaying.track.artists?.[0]?.name}
+                    </div>
+                    <div className="text-[#1db954] text-xs mt-1">
+                      {nowPlaying.isPaused ? "Paused" : "Playing"}
+                    </div>
+                  </div>
+                </div>
+                <SeekBar
+                  duration={nowPlaying.duration}
+                  currentTime={currentTime}
+                  onSeek={handleSeek}
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <div className="flex space-x-4">
+                    <button onClick={handleSkipBack} className="hover:text-[#1db954]">
+                      <SkipBack size={20} />
+                    </button>
+                    <button onClick={handlePlayPause} className="hover:text-[#1db954]">
+                      {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                    </button>
+                    <button onClick={handleSkipForward} className="hover:text-[#1db954]">
+                      <SkipForward size={20} />
+                    </button>
+                    <button
+                      onClick={handleShuffleToggle}
+                      className="relative hover:text-[#1db954]"
+                    >
+                      <Shuffle size={20} color={shuffle ? "#1db954" : "currentColor"} />
+                      {shuffle && (
+                        <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#1db954] rounded-full"></span>
+                      )}
+                    </button>
+                  </div>
+                  <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
+                </div>
               </div>
-              <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
+            ) : (
+              <div className={secondaryText}>No track playing</div>
+            )}
+          </div>
+
+          {/* Playlist Slider */}
+          <div className={`mb-4 border-b ${borderColor} pb-4`}>
+            <h3 className={`text-sm uppercase ${secondaryText} mb-2`}>Your Playlists</h3>
+            <div className="flex space-x-4 overflow-x-auto" onWheel={handlePlaylistWheel}>
+              {playlists.map((pl) => (
+                <div
+                  key={pl.id}
+                  onClick={() => handlePlaylistClick(pl)}
+                  className="min-w-[28%] max-w-[28%] flex-shrink-0 hover:bg-gray-800 p-2 rounded cursor-pointer"
+                >
+                  <img
+                    src={pl.images?.[0]?.url || "/default-playlist.png"}
+                    alt={pl.name}
+                    className="w-full rounded"
+                  />
+                  <div className="mt-2">
+                    <div className={`font-semibold text-sm ${primaryText} truncate`}>{pl.name}</div>
+                    <div className={`text-xs ${secondaryText} truncate`}>{pl.tracks.total} songs</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="text-[#666]">No track playing</div>
-        )}
-      </div>
 
-      {/* Playlist Slider */}
-      <div className="p-4 border-b border-[#282828]">
-        <h3 className="text-sm uppercase text-[#666] mb-2">Your Playlists</h3>
-        <div className="flex space-x-4 overflow-x-auto" onWheel={handlePlaylistWheel}>
-          {playlists.map((pl) => (
-            <div
-              key={pl.id}
-              onClick={() => handlePlaylistClick(pl)}
-              className="min-w-[28%] max-w-[28%] flex-shrink-0 hover:bg-[#282828] p-2 rounded cursor-pointer"
-            >
-              <img
-                src={pl.images?.[0]?.url || "/default-playlist.png"}
-                alt={pl.name}
-                className="w-full rounded"
-              />
-              <div className="mt-2">
-                <div className="font-semibold text-sm truncate">{pl.name}</div>
-                <div className="text-xs text-[#666] truncate">{pl.tracks.total} songs</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+          {/* Song Search */}
+          <div className={`border-t ${borderColor} pt-4`}>
+            <SongSearch
+              token={token}
+              deviceId={deviceId}
+              onTrackPlay={(trackInfo) => {
+                console.log("Track played from search:", trackInfo);
+              }}
+              onSearchPlay={(results) => {
+                setSearchQueue(results);
+              }}
+            />
+          </div>
 
-      {/* Song Search */}
-      <div className="p-4 border-t border-[#282828]">
-        <SongSearch
-          token={token}
-          deviceId={deviceId}
-          onTrackPlay={(trackInfo) => {
-            // Optionally, update nowPlaying here if desired.
-            console.log("Track played from search:", trackInfo);
-          }}
-          onSearchPlay={(results) => {
-            // Store the search queue so skip buttons can work on it.
-            setSearchQueue(results);
-          }}
-        />
-      </div>
-
-      {/* Hidden Spotify Player for SDK functionality */}
-      {token && (
-        <SpotifyPlayer token={token} onStateChange={handleStateChange} onDeviceReady={setDeviceId} />
+          {/* Hidden Spotify Player for SDK functionality */}
+          <SpotifyPlayer token={token} onStateChange={handleStateChange} onDeviceReady={setDeviceId} />
+        </>
       )}
     </div>
   );
