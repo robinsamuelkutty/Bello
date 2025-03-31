@@ -7,12 +7,12 @@ Bello is a **real-time messaging and video conferencing platform** that combines
 - **Real-Time Messaging**: Send and receive instant messages with rich text formatting.
 - **Video & Voice Calls**: High-quality video and voice calls using ZegoCloud SDK.
 - **AI-Powered Features**:
-  - **Real-Time Translation** (Live audio captions & message translation)
-  - **Message & Voice Note Summarization**
-  - **Text-to-Speech & Speech-to-Text (Whisper)**
-  - **AI Image Generation (DALL·E)**
+  - **Multi Language Translation** 
+  - **Message  Note Summarization**
+  - **Text-to-Speech (WebSpeech)**
+  - **AI Personal Assistant  (Gemini API)**
 - **Decentralized Message Backup & Restore**:
-  - Messages backed up to **IPFS**, with CIDs stored on the **blockchain** (Ethereum/Hyperledger).
+  - Messages backed up to **IPFS**, with CIDs stored on the **blockchain** (Ethereum).
   - Restore messages using CID stored on the blockchain.
 - **User Authentication Backup**:
   - Encrypted user emails stored on **IPFS**.
