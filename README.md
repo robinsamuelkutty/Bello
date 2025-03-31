@@ -19,7 +19,7 @@ Bello is a **real-time messaging and video conferencing platform** that combines
   - CID stored on blockchain for recovery.
 - **Spotify Integration**: Listen to and share music directly in the chat.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### **Frontend**
 - **React.js** / **Vue.js**
