@@ -310,7 +310,7 @@ const SpotifySidebar = () => {
 
   return (
     <div
-      className={`fixed top-16 right-4 h-[calc(100vh-80px)] w-96 ${bgOverlay} backdrop-blur-lg rounded-xl p-4 transition-transform duration-300 ease-in-out 
+      className={`fixed top-16 right-0 sm:right-4 h-[calc(100vh-80px)] w-full sm:w-96 ${bgOverlay} backdrop-blur-lg rounded-xl p-4 transition-transform duration-300 ease-in-out 
         ${isVisible ? "translate-x-0" : "translate-x-full"} shadow-2xl z-50`}
     >
       {/* Header */}
