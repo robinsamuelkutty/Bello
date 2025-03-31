@@ -1,6 +1,6 @@
 # Bello
 
-Bello is a **real-time messaging and video conferencing platform** that combines seamless messaging, high-quality video conferencing, and productivity-enhancing tools. It includes AI-powered features such as **real-time translation, message summarization, speech-to-text, text-to-speech, and AI-generated images**.
+Bello is a **real-time messaging and video conferencing platform** that combines seamless messaging, high-quality video conferencing, and productivity-enhancing tools. It includes AI-powered features such as **MultiLanguage translation, message summarization,  text-to-speech, and AI-Personal Assistant And BlockChain Message Backup and Restore**.
 
 ##  Features
 
