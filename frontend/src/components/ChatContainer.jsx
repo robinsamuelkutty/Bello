@@ -305,11 +305,7 @@ const TextMessage = ({
             </>
           ) : (
             <>
-              <div 
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
-                }}
-              />
+             <p>{renderTextWithLinks(message.displayText || message.text)}</p>
               {summarizedText && (
                 <button
                   onClick={onToggle}
