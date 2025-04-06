@@ -307,7 +307,7 @@ const TextMessage = ({
             <>
               <div 
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(parseFormatting(renderTextWithLinks(message.displayText || message.text)))
+                  __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
                 }}
               />
               {summarizedText && (
