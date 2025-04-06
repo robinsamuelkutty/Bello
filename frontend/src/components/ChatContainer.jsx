@@ -14,9 +14,24 @@ import { ChevronDown, Play, Pause, Mic } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import { franc } from "franc";
 import summarizeText from "../lib/summarizer";
+import DOMPurify from "dompurify";
+
+// Helper function to parse Discord-like formatting.
+// Converts:
+//   *text*      -> <strong>text</strong>
+//   _text_      -> <em>text</em>
+//   __text__    -> <u>text</u>
+//   ~~text~~    -> <del>text</del>
+function parseFormatting(text) {
+  if (!text) return "";
+  text = text.replace(/\*([^*]+)\*/g, "<strong>$1</strong>");
+  text = text.replace(/_([^_]+)_/g, "<em>$1</em>");
+  text = text.replace(/__([^_]+)__/g, "<u>$1</u>");
+  text = text.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+  return text;
+}
 
 const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdown, onAction }) => {
-  // ... (AudioMessage code remains unchanged) ...
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -163,7 +178,11 @@ const AudioMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       )}
       {message.text && (
         <div className={`mt-1 px-3 py-2 rounded-lg ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'}`}>
-          <p>{message.displayText || message.text}</p>
+          <div 
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
+            }}
+          />
           {message.isTranslated && (
             <div className="text-xs mt-1 opacity-70">
               Translated from {message.originalLanguage || 'original language'}
@@ -206,7 +225,11 @@ const ImageMessage = ({ message, isSender, senderName, onActionClick, showDropdo
       </div>
       {message.text && (
         <div className={`mt-1 px-3 py-2 rounded-lg ${isSender ? 'bg-primary text-white' : 'bg-neutral text-white'}`}>
-          <p>{message.displayText || message.text}</p>
+          <div 
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
+            }}
+          />
           {message.isTranslated && (
             <div className="text-xs mt-1 opacity-70">
               Translated from {message.originalLanguage || 'original language'}
@@ -232,32 +255,6 @@ const TextMessage = ({
   showOriginal,
   onToggle,
 }) => {
-  const renderTextWithLinks = (text) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    if (!urlRegex.test(text)) {
-      return text;
-    }
-    const parts = text.split(urlRegex);
-    const matches = text.match(urlRegex) || [];
-    return parts.map((part, index) => {
-      if (matches.includes(part)) {
-        return (
-          <a 
-            key={index}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-300 underline hover:text-blue-100 break-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
-        );
-      }
-      return part;
-    });
-  };
-
   return (
     <div className={`relative group max-w-xs ${isSender ? 'ml-auto' : 'mr-auto'}`}>
       <ReplyPreview message={message} isSender={isSender} senderName={senderName} />
@@ -265,7 +262,11 @@ const TextMessage = ({
         <div className="flex flex-col w-full">
           {summarizedText && !showOriginal ? (
             <>
-              <p>{summarizedText}</p>
+              <div 
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(parseFormatting(summarizedText))
+                }}
+              />
               <button
                 onClick={onToggle}
                 className="text-xs text-gray-300 underline mt-1"
@@ -275,7 +276,11 @@ const TextMessage = ({
             </>
           ) : (
             <>
-              <p>{renderTextWithLinks(message.displayText || message.text)}</p>
+              <div 
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
+                }}
+              />
               {summarizedText && (
                 <button
                   onClick={onToggle}
