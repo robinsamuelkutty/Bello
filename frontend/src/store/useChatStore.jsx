@@ -1,9 +1,45 @@
-// File: frontend/src/store/useChatStore.js
+import React from "react";
 import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore";
+import DOMPurify from "dompurify";
 
+/**
+ * TEXT FORMATTING
+ * Converts:
+ *   *text*      -> <strong>text</strong>
+ *   _text_      -> <em>text</em>
+ *   __text__    -> <u>text</u>
+ *   ~~text~~    -> <del>text</del>
+ */
+function parseFormatting(text) {
+  if (!text) return "";
+  // Bold: *text*
+  text = text.replace(/\*([^*]+)\*/g, "<strong>$1</strong>");
+  // Italic: _text_
+  text = text.replace(/_([^_]+)_/g, "<em>$1</em>");
+  // Underline: __text__
+  text = text.replace(/__([^_]+)__/g, "<u>$1</u>");
+  // Strikethrough: ~~text~~
+  text = text.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+  return text;
+}
+
+/**
+ * Optional React component for rendering a single chat message.
+ * Uses dangerouslySetInnerHTML to interpret HTML tags (e.g., <strong>).
+ */
+export function ChatMessage({ message }) {
+  // Sanitize the HTML to avoid XSS
+  const safeHTML = DOMPurify.sanitize(message.text || "");
+  return (
+    <div
+      className="message"
+      dangerouslySetInnerHTML={{ __html: safeHTML }}
+    />
+  );
+}
 export const useChatStore = create((set, get) => ({
   messages: [],
   users: [],
@@ -12,6 +48,7 @@ export const useChatStore = create((set, get) => ({
   isMessagesLoading: false,
   isGeminiTyping: false, // NEW
 
+  // Fetch the list of users
   getUsers: async () => {
     set({ isUsersLoading: true });
     try {
@@ -24,6 +61,7 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  // Fetch messages for a selected user
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
     try {
@@ -36,11 +74,16 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  // Send a message to the selected user
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     const authUser = useAuthStore.getState().authUser;
+
+    // Parse text formatting before sending/storing
+    messageData.text = parseFormatting(messageData.text);
+
     try {
-      if (selectedUser._id === "gemini") {
+      if (selectedUser && selectedUser._id === "gemini") {
         // Immediately add the user's message so it appears in the chat
         const userMessage = {
           _id: "user-" + Date.now().toString(),
@@ -49,31 +92,26 @@ export const useChatStore = create((set, get) => ({
           createdAt: new Date().toISOString(),
         };
         set({ messages: [...messages, userMessage] });
-        
-        // Set the flag to true immediately before making the API call
-        console.log("Setting isGeminiTyping to true");
+        // Indicate "Gemini" is typing
         set({ isGeminiTyping: true });
-        
         // Call the Gemini API (backend endpoint)
         const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-        
-        // Once the response is received, set the flag to false
-        console.log("Setting isGeminiTyping to false");
+        // Turn off the "typing" indicator
         set({ isGeminiTyping: false });
-        
         // Append the AI reply
         set({ messages: [...get().messages, res.data.reply] });
       } else {
-        const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+        // Normal user chat
+        const res = await axiosInstance.post(`/messages/send/${selectedUser?._id}`, messageData);
         set({ messages: [...messages, res.data] });
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send/update message");
-      // Ensure flag resets even if there's an error
       set({ isGeminiTyping: false });
     }
-  },  
+  },
 
+  // Subscribe to new incoming messages via socket
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;
@@ -85,9 +123,10 @@ export const useChatStore = create((set, get) => ({
     });
   },
 
+  // Edit an existing message
   editMessage: async (messageId, { text, image, audio }) => {
     try {
-      const res = await axiosInstance.put(`/messages/edit/${messageId}`, { 
+      const res = await axiosInstance.put(`/messages/edit/${messageId}`, {
         text: text || "",
         image: image || null,
         audio: audio || null,
@@ -101,6 +140,7 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  // Delete a message
   deleteMessage: async (messageId) => {
     try {
       await axiosInstance.delete(`/messages/delete/${messageId}`);
@@ -111,10 +151,12 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  // Unsubscribe from the socket listener
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
   },
 
+  // Set the currently selected user for chat
   setSelectedUser: (selectedUser) => set({ selectedUser }),
 }));

@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "bello": "file:..",
     "browser-image-compression": "^2.0.2",
+    "dompurify": "^3.2.5",
     "framer-motion": "^12.5.0",
     "franc": "^6.2.0",
     "lamejs": "^1.2.1",
