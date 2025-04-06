@@ -255,6 +255,35 @@ const TextMessage = ({
   showOriginal,
   onToggle,
 }) => {
+  const renderTextWithLinks = (text) => {
+   
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    if (!urlRegex.test(text)) {
+      return text;
+    }
+    
+    const parts = text.split(urlRegex);
+    const matches = text.match(urlRegex) || [];
+    
+    return parts.map((part, index) => {
+      if (matches.includes(part)) {
+        return (
+          <a 
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-300 underline hover:text-blue-100 break-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className={`relative group max-w-xs ${isSender ? 'ml-auto' : 'mr-auto'}`}>
       <ReplyPreview message={message} isSender={isSender} senderName={senderName} />
@@ -278,7 +307,7 @@ const TextMessage = ({
             <>
               <div 
                 dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(parseFormatting(message.displayText || message.text))
+                  __html: DOMPurify.sanitize(parseFormatting(renderTextWithLinks(message.displayText || message.text)))
                 }}
               />
               {summarizedText && (
@@ -319,6 +348,7 @@ const TextMessage = ({
     </div>
   );
 };
+
 
 const ChatContainer = () => {
   const {
