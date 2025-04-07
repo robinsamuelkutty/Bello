@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-// Error codes enum
+
 const ErrorCode = {
   success: 0,
   appIDInvalid: 1,
@@ -9,12 +9,12 @@ const ErrorCode = {
   effectiveTimeInSecondsInvalid: 6
 };
 
-// Function to return random number within given range
+
 function RndNum(a, b) {
   return Math.ceil((a + (b - a)) * Math.random());
 }
 
-// Function to generate random 16 character string for IV
+
 function makeRandomIv() {
   const str = '0123456789abcdefghijklmnopqrstuvwxyz';
   const result = [];
@@ -25,7 +25,7 @@ function makeRandomIv() {
   return result.join('');
 }
 
-// Function to determine algorithm based on length of secret key
+
 function getAlgorithm(keyBase64) {
   const key = Buffer.from(keyBase64);
   switch (key.length) {
@@ -39,7 +39,7 @@ function getAlgorithm(keyBase64) {
   throw new Error('Invalid key length: ' + key.length);
 }
 
-// AES encryption function using CBC/PKCS5Padding mode
+
 function aesEncrypt(plainText, key, iv) {
   const cipher = crypto.createCipheriv(getAlgorithm(key), key, iv);
   cipher.setAutoPadding(true);
@@ -49,15 +49,7 @@ function aesEncrypt(plainText, key, iv) {
   return Uint8Array.from(out).buffer;
 }
 
-/**
- * Generate a ZegoCloud token for authentication
- * @param {number} appId - ZegoCloud App ID
- * @param {string} userId - User ID
- * @param {string} secret - ZegoCloud App Sign/Secret
- * @param {number} effectiveTimeInSeconds - Token validity in seconds
- * @param {string} payload - Optional additional data
- * @returns {string} The generated token
- */
+
 export function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload) {
   if (!appId || typeof appId !== 'number') {
     throw {
