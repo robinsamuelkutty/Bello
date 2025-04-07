@@ -10,14 +10,14 @@ export const summarizeText = async (req, res) => {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    // Split text into sentences
+   
     const sentences = text.split(/[.!?]/).map((s) => s.trim()).filter(Boolean);
 
     if (sentences.length === 0) {
       return res.status(400).json({ error: "No valid sentences found" });
     }
 
-    // Select key sentences (e.g., first, middle, last)
+  
     const summary =
       sentences.length > 3
         ? `${sentences[0]}. ${sentences[Math.floor(sentences.length / 2)]}. ${sentences[sentences.length - 1]}.`
